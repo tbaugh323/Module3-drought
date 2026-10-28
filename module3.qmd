@@ -209,15 +209,17 @@ Based on the R^2 of 0.1, this ensemble model accounts for around twice as much v
 
 Which variable does the heavy lifting, and how does this compare to the results of the simple linear regression?
 
-
+The drought severity index does the heavy lifting, accounting for the most variance of any predictor. Drought severity is also the best predictor in the simple linear regression, again accounting for more variance than the other predictor.
 
 
 ### Q8 (1 point)
 One common consideration in multiple regression is multicollinearity of the predictor variable. Look up the documentation for `pairs()` and use it on all of the predictor columns in `data_all`. Which predictors are strongly correlated? What does this suggest about their usage in a multiple regression model?
 
 ```{r}
-
+pairs(data_all |> select(DR, MAP, prev_precip, MAP_cv, lnAridity, sand_mean, gram_prop, rich_mean, DS))
 ```
+
+MAP and lnAridity are the predictor variables with the strongest linear correlation. This means that they would have the same explanatory power in a model. This could falsely improve model performance, so one of these two variables should likely be removed from a multiple linear regression.
 
 
 ### Q9 (2 points)
@@ -236,7 +238,35 @@ Try a backward selection approach (starting with the model from Q7) and sequenti
 Note that model comparison can only be done on the same response data, so you may have reduce your dataset in advance. 
 
 ```{r}
+# model from Q7
+m <- lmer(DR ~ DS + MAP + prev_precip + MAP_cv + sand_mean + gram_prop + (1|habitat_type), data = data_all)
+summary(m)
+AIC(m)
 
+# removing MAP
+m <- lmer(DR ~ DS + prev_precip + MAP_cv + sand_mean + gram_prop + (1|habitat_type), data = data_all)
+summary(m)
+AIC(m)
+
+# removing sand_mean
+m <- lmer(DR ~ DS + prev_precip + MAP_cv + gram_prop + (1|habitat_type), data = data_all)
+summary(m)
+AIC(m)
+
+# removing gram_prop
+m <- lmer(DR ~ DS + prev_precip + MAP_cv + (1|habitat_type), data = data_all)
+summary(m)
+AIC(m)
+# this caused an increase in AIC, so our previous model is better
+
+# optimized model
+m <- lmer(DR ~ DS + prev_precip + MAP_cv + gram_prop + (1|habitat_type), data = data_all)
+summary(m)
+AIC(m)
 ```
+
+Based on table S11, where a series of models are compared, Smith et al. found that MAP and previous year precipitation were the least efficient predictor variables based on AIC. They included variables such as lnAridity and richness than our model did not include. Of the shared variables, both our model and Smith et al.'s show that drought severity is the most efficient predictor variable based on AIC. Our model optimization also found that MAP was an inefficient predictor, but did still include previous year precipitation. 
+
+They explicitly report performing a multiple linear regression in the paper, but we found that no data or further information appears on this either in the paper or in the supplemental data.
 
 

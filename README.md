@@ -1,7 +1,9 @@
 # Module 3: Drought
 
 ## Team members and contributions
-To be updated
+Taylor Baugh and Matthew Simpson
+
+We both contributed equally to the completion of this assignment, pair programming all of it.
 
 ## Learning objectives
 
