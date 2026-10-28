@@ -126,13 +126,18 @@ plot_grid(panel_a, panel_b, panel_c, panel_d, panel_e, panel_f, panel_g)
 ## Testing the Inverse Texture hypothesis
 See Prof. Guo's slides on the inverse texture hypothesis. Under this hypothesis, there should be a significant interaction term between which two variables?
 
+There should be a significant interaction term between MAP and productivity. This interaction is modulated by % sand in the soil.
 
 ### Q4 (1 point)
 Conduct a multiple regression to test the inverse texture hypothesis. Is there statistical support for this hypothesis? Write your answer as a results sentence, including appropriate statistics. 
 
 ```{r}
-
+m1 <- lm(DR ~ MAP + sand_mean, data = data_all)
+summary(m1)
+anova(m1)
 ```
+
+These data show no relationship between MAP and drought response (productivity) (F = 1.885, df = 2, 93, p = 0.8436). 
 
 ### Q5 (1 point)
 Compare your result above to the supplemental Table S7. Try using 'lme4' and lmer() to replicate the results of Table S7. Were you successful? If not, what is the limiting factor?
@@ -142,8 +147,11 @@ Compare your result above to the supplemental Table S7. Try using 'lme4' and lme
 library(lme4)
 library(lmerTest)
 
+m2 <- lmer(DR ~ MAP + sand_mean + MAP * sand_mean + (1|habitat_type), data = data_all)
+summary(m2)
 ```
 
+We were successful! When we first tried this, we followed what the caption said, which was to treat site as the random effect. However, since we only have one observation per site, there is not enough statistical power to treat site as the random effect. So, we tried treating habitat type as the random effect instead, and found that this output matched the table from the supplement.
 
 ## Importance of drought severity (Fig. 4)
 
