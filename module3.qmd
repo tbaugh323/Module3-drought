@@ -10,10 +10,12 @@ We are going to replicate some of the regressions and figures from Smith et al. 
 ### Q1 (1 point)
 The full contents of the [Dryad repository](https://datadryad.org/dataset/doi:10.5061/dryad.3j9kd51rb) are in `data/`. From the README file, can  you tell what types of information are in each .csv? How would you assess this data repository in light of the FAIR criteria?
 
+Yes, each csv has a description of the data stored within it. This dataset follows the FAIR principles, as it is easy to see where to find the data you might be interested in in the README, accessible online, uses common data files, and they have provided the code to reproduce all data analysis. 
 
 ### Q2 (1 point)
 A single R script has been provided for this paper. Read through this file (running it is optional). Evaluate the strengths and weaknesses of this code repository in light of your understanding of research compendia. 
 
+The formatting of this script is helpful, as the associated statistics for each section/figure are included right before the figure in which they are used. In other words, all of the code associated with a specific question is grouped together. However, putting all of these sections in the same script makes it more difficult to find a specific analysis, rather than just run through everything. A more useful research compendia would include these analyses as separate scripts.
 
 ## Wrangling data
 
@@ -22,6 +24,8 @@ Since the goal of this exercise is to use linear regression and practice plottin
 ```{r}
 #| echo: false
 library(tidyverse)
+library(cowplot)
+library(patchwork)
 
 # Figure 3 regression predictors
 map <- read_csv("data/datappt_MAP2.csv") |> 
@@ -79,6 +83,43 @@ data_all <- read_csv("data/data.hab.csv") |>
 From the published R code, it appears that Fig. 3 was made in separate pieces. Recreate the figure to the best of your ability with a single code chunk, using `facet_wrap()`. 
  
 ```{r}
+theme_set(theme_classic())
+
+make_panels <- function(var, regression, xlab, panel_letter) {
+  regression_color = NA
+  regression_fill = NA
+  
+  if (regression) {
+    regression_color = 'black'
+    regression_fill = 'grey50'
+  }
+  
+  panel <- data_all |> 
+    ggplot(aes(x = var, y = DR)) +
+    annotate("text", x = min(var, na.rm = TRUE), y = 0.5, label = panel_letter, size = 10) +
+    geom_hline(aes(yintercept = 0), linetype = "dashed", linewidth = 1.5) +
+    geom_point(aes(color = habitat_type, shape = Eco.Extr), size = 3) +
+    scale_color_manual(values = c("springgreen4", "sienna")) +
+    scale_shape_manual(values = c(16, 1, 17, 2)) +
+    labs(x = xlab, y = "Drought Response") +
+    theme(legend.position = "none",
+          axis.title = element_text(size = 15),
+          axis.text = element_text(size = 13)) +
+    geom_smooth(method = "lm", color = regression_color, fill = regression_fill) 
+  
+  
+  panel
+}
+
+panel_a <- make_panels(data_all$MAP, TRUE, 'MAP (mm)', 'A')
+panel_b <- make_panels(data_all$prev_precip, FALSE, 'Previous Precipitation (mm)', 'B')
+panel_c <- make_panels(data_all$MAP_cv, FALSE, 'CV of MAP (%)', 'C')
+panel_d <- make_panels(data_all$lnAridity, TRUE, 'ln(Aridity Index)', 'D')
+panel_e <- make_panels(data_all$sand_mean, FALSE, 'Sand in Soil (%)', 'E')
+panel_f <- make_panels(data_all$gram_prop, FALSE, 'Proportion of Graminoids', 'F')
+panel_g <- make_panels(data_all$rich_mean, TRUE, 'Average Richness', 'G')
+
+plot_grid(panel_a, panel_b, panel_c, panel_d, panel_e, panel_f, panel_g)
 
 ```
 
