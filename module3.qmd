@@ -159,10 +159,39 @@ We were successful! When we first tried this, we followed what the caption said,
 Replicate the simple linear regression in Fig. 4. 
 
 ```{r}
+  
+data_some <- data_all |> 
+  group_by(Extreme) |> 
+  summarize(mean_DS = mean(DS), mean_DR = mean(DR))
 
+data_all |> 
+  ggplot(aes(x = DS, y = DR)) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed", linewidth = 1.2) +
+  geom_hline(aes(yintercept = -.7), linetype = "dashed", linewidth = 1.5, color = 'red') +
+  geom_hline(aes(yintercept = -1.3), linetype = "dashed", linewidth = 1.5, color = 'red') +
+  geom_vline(aes(xintercept = 0), linewidth = 1.2) +
+  geom_point(aes(color = habitat_type, shape = Eco.Extr), size = 3) +
+  scale_color_manual(values = c("springgreen4", "sienna")) +
+  scale_shape_manual(values = c(15, 16, 1, 0, 17, 2)) +
+  labs(x = 'Drought Severity', y = "Drought Response") + 
+  geom_smooth(method = "lm", color = 'black', fill = 'grey50') +
+  theme(legend.position = "none",
+          axis.title = element_text(size = 15),
+          axis.text = element_text(size = 13)) + 
+  geom_point(data = data_some, aes(x = mean_DR, y = mean_DS, shape = Extreme), color = 'orange', size = 7) + 
+  annotate("text", x = .15, y = -.8, label = '-50%', size = 5) +
+  annotate("text", x = .15, y = -1.4, label = '-75%', size = 5)
+  
 ```
 
 How much variation in drought response is explained by drought severity? How does this compare to the coefficient of determination (R^2) of the predictors in Fig. 3?
+
+```{r}
+m2 <- lm(DR ~ DS + Extreme, data = data_all)
+summary(m2)
+```
+
+Based on our R^2 of 0.06981, only around 7% of the variation in drought response is explained by drought severity. This is slightly better than the R^2 values of the predictors in figure 3, many of which are insignificant. Our metric is close to the R^2 values of the best predictors from figure 3, which have R^2 values of around 0.05.
 
 ### Q7 (1 point)
 It can be unsatisfying to run numerous simple linear regressions. We also increase the risk of Type I error, meaning that due to the large number of hypothesis tests, we are more likely to see a false positive even if that relationship isn't truly significant. 
@@ -170,12 +199,17 @@ It can be unsatisfying to run numerous simple linear regressions. We also increa
 In the supplemental Table S8, Smith et al. 2024 show the output of a multiple regression. Replicate this below to the best of your ability. 
 
 ```{r}
-
+m2 <- lmer(DR ~ DS + MAP + prev_precip + MAP_cv + sand_mean + gram_prop + (1|habitat_type), data = data_all)
+summary(m2)
 ```
 
 How much more variation in drought response is predicted by this ensemble of predictor variables? 
 
+Based on the R^2 of 0.1, this ensemble model accounts for around twice as much variation in drought response as the best individual predictors from figure 3 (MAP: R^2 of 0.05).
+
 Which variable does the heavy lifting, and how does this compare to the results of the simple linear regression?
+
+
 
 
 ### Q8 (1 point)
